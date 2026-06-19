@@ -259,9 +259,9 @@ OpenWrt 的 IPv6 设置方案见本项目的 Wiki：[OpenWrt-IPv6-设置方案](
 
 - [521xueweihan/GitHub520](https://github.com/521xueweihan/GitHub520)
 
-### 🔄 订阅转换后端
+### ~~🔄 订阅转换后端~~
 
-- [Aethersailor/Subconverter-Extended](https://github.com/Aethersailor/SubConverter-Extended)
+~~- [Aethersailor/Subconverter-Extended](https://github.com/Aethersailor/SubConverter-Extended)~~
 
 ### 🧰 工具
 
@@ -281,15 +281,3 @@ OpenWrt 的 IPv6 设置方案见本项目的 Wiki：[OpenWrt-IPv6-设置方案](
 ### CC-BY-SA-4.0
 
 ---
-
-## ⭐ 记录
-
-<a href="https://www.star-history.com/#Brittle8514/Custom_OpenClash_Rules&Date">
-
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Brittle8514/Custom_OpenClash_Rules&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Brittle8514/Custom_OpenClash_Rules&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Brittle8514/Custom_OpenClash_Rules&type=Date" />
- </picture>
-
-</a>  
