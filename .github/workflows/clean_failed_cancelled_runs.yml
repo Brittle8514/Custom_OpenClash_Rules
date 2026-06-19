@@ -5,7 +5,7 @@ on:
 
 jobs:
   clean-failed-cancelled:
-    if: github.repository == 'Aethersailor/Custom_OpenClash_Rules'
+    if: github.repository == 'Brittle8514/Custom_OpenClash_Rules'
     runs-on: ubuntu-latest
 
     env:
