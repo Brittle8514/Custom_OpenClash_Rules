@@ -6,7 +6,7 @@ on:
       - 'cfg/**'
       - 'rule/**'
       - 'game_rule/**'
-      - 'shell/**'
+      - 'Tools/**'
       - 'overwrite/**'
       - '!**/archived/**'
       - '!**/README.md'
