@@ -43,7 +43,7 @@
 
 ```bash
 RULES_BRANCH="${RULES_BRANCH:-main}"
-wget -qO- "https://cdn.jsdelivr.net/gh/Aethersailor/Custom_OpenClash_Rules@refs/heads/${RULES_BRANCH}/shell/check_cpu_version.sh" | sh
+wget -qO- "https://cdn.jsdelivr.net/gh/Brittle8514/Custom_OpenClash_Rules@refs/heads/${RULES_BRANCH}/shell/check_cpu_version.sh" | sh
 ```
 
 <details>
