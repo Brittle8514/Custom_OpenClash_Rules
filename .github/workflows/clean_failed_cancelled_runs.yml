@@ -3,139 +3,74 @@ name: Clean Failed/Cancelled Workflow Runs
 on:
   workflow_dispatch:
 
-permissions:
-  contents: read
-  actions: write
-
-concurrency:
-  group: cleanup-workflow-runs
-  cancel-in-progress: false
-
 jobs:
-  clean-workflow-runs:
-    if: github.repository == 'Brittle8514/Custom_OpenClash_Rules'
+  clean-failed-cancelled:
+    if: github.repository == 'Aethersailor/Custom_OpenClash_Rules'
     runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GH_PAT }}
+      REPO: ${{ github.repository }}
+
     steps:
-      - name: Delete workflow runs safely
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          WORKFLOW_NAME: ${{ github.workflow }}
-        shell: bash
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Delete failed and cancelled runs
         run: |
-          set -e
-          echo "Cleaning workflow runs for $REPO"
+          echo "Cleaning failed/cancelled runs..."
 
-          ########################################
-          # 1. 删除失败 / cancelled 的 runs
-          ########################################
-
-          page=1
           while true; do
-            echo "Fetching workflow runs page $page"
-            response=$(curl -s -w "\n%{http_code}" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/$REPO/actions/runs?per_page=100&page=$page")
-            http_code=$(echo "$response" | tail -n1)
-            body=$(echo "$response" | sed '$d')
-            if [ "$http_code" -ne 200 ]; then
-              echo "GitHub API error: HTTP $http_code"
-              echo "$body"
-              exit 1
-            fi
-            count=$(echo "$body" | jq '.workflow_runs // [] | length')
-            if [ "$count" -eq 0 ]; then
-              echo "No more runs"
-              break
-            fi
-            runs=$(echo "$body" | jq -r '
-              .workflow_runs[]?
-              | select(
-                  .conclusion=="failure"
-                  or
-                  .conclusion=="cancelled"
-                )
+            response=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+              "https://api.github.com/repos/$REPO/actions/runs?per_page=100")
+
+            runs=$(echo "$response" | jq -r '
+              .workflow_runs[]
+              | select(.conclusion=="failure" or .conclusion=="cancelled")
               | .id
             ')
+
             if [ -z "$runs" ]; then
-              echo "No failed/cancelled runs on page $page"
-            fi
-            for run_id in $runs; do
-              echo "Deleting failed/cancelled run: $run_id"
-              result=$(curl -s -w "\n%{http_code}" \
-                -X DELETE \
-                -H "Authorization: Bearer $GH_TOKEN" \
-                -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/$REPO/actions/runs/$run_id")
-              code=$(echo "$result" | tail -n1)
-              if [ "$code" -eq 204 ]; then
-                echo "Deleted $run_id"
-              else
-                echo "Delete failed $run_id HTTP $code"
-              fi
-              sleep 0.2
-            done
-            page=$((page+1))
-          done
-
-          ########################################
-          # 2. 删除当前 workflow 自己的历史运行
-          ########################################
-
-          echo "Finding workflow id..."
-          workflow_id=$(curl -s \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/actions/workflows" \
-            | jq -r "
-              .workflows[]?
-              | select(.name==\"$WORKFLOW_NAME\")
-              | .id
-            ")
-          if [ -z "$workflow_id" ] || [ "$workflow_id" = "null" ]; then
-            echo "Workflow id not found"
-            exit 0
-          fi
-          echo "Workflow id: $workflow_id"
-          page=1
-          while true; do
-            echo "Fetching workflow history page $page"
-            response=$(curl -s -w "\n%{http_code}" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/$REPO/actions/workflows/$workflow_id/runs?per_page=100&page=$page")
-            http_code=$(echo "$response" | tail -n1)
-            body=$(echo "$response" | sed '$d')
-            if [ "$http_code" -ne 200 ]; then
-              echo "GitHub API error HTTP $http_code"
-              echo "$body"
-              exit 1
-            fi
-            count=$(echo "$body" | jq '.workflow_runs // [] | length')
-            if [ "$count" -eq 0 ]; then
-              echo "No more workflow history"
+              echo "No more failed/cancelled runs."
               break
             fi
-            runs=$(echo "$body" | jq -r '.workflow_runs[]?.id')
+
             for run_id in $runs; do
-              echo "Deleting workflow run: $run_id"
-              result=$(curl -s -w "\n%{http_code}" \
-                -X DELETE \
-                -H "Authorization: Bearer $GH_TOKEN" \
-                -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/$REPO/actions/runs/$run_id")
-              code=$(echo "$result" | tail -n1)
-              if [ "$code" -eq 204 ]; then
-                echo "Deleted $run_id"
-              else
-                echo "Delete failed $run_id HTTP $code"
-              fi
-              sleep 0.2
+              echo "Deleting run $run_id"
+              curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/$REPO/actions/runs/$run_id"
             done
-            page=$((page+1))
           done
 
+      - name: Delete THIS workflow runs (all statuses)
+        run: |
+          echo "Cleaning THIS workflow runs..."
 
+          workflow_id=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/workflows" \
+            | jq -r ".workflows[] | select(.name==\"Clean Failed/Cancelled Workflow Runs\") | .id")
 
-          echo "Cleanup completed."
+          if [ -z "$workflow_id" ]; then
+            echo "Workflow ID not found."
+            exit 0
+          fi
+
+          while true; do
+            response=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+              "https://api.github.com/repos/$REPO/actions/workflows/$workflow_id/runs?per_page=100")
+
+            runs=$(echo "$response" | jq -r '.workflow_runs[].id')
+
+            if [ -z "$runs" ]; then
+              echo "No more runs for this workflow."
+              break
+            fi
+
+            for run_id in $runs; do
+              echo "Deleting self run $run_id"
+              curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/$REPO/actions/runs/$run_id"
+            done
+          done
+
+          echo "Done."
