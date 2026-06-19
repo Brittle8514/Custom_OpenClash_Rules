@@ -19,4 +19,4 @@
 | **[clean_failed_cancelled_runs.yml](clean_failed_cancelled_runs.yml)** | 清理所有失败或取消的 Workflow 运行记录，并删除自身运行记录 | 手动触发 |
 | **[codeql.yml](codeql.yml)** | CodeQL 代码安全性分析（分析 Actions 和 Python） | Push / Pull Request / 每日定时 / 手动触发 |
 | **[dependabot-auto-merge.yml](dependabot-auto-merge.yml)** | 自动合并带有 `automerge` 标签的 Dependabot PR | Dependabot PR 打开/更新 |
-| **[purge-jsdelivr.yml](purge-jsdelivr.yml)** | 自动刷新 jsDelivr CDN 缓存，并实现防抖（60 秒等待批量合并提交） | `cfg/`, `rule/`, `game_rule/`, `shell/`, `overwrite/` 变更 / 手动触发 |
+| **[purge-jsdelivr.yml](purge-jsdelivr.yml)** | 自动刷新 jsDelivr CDN 缓存，并实现防抖（60 秒等待批量合并提交） | `cfg/`, `rule/`, `game_rule/`, `Tools/`, `overwrite/` 变更 / 手动触发 |
